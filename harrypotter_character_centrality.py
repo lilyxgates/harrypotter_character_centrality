@@ -7,8 +7,11 @@ import json
 import random
 import numpy as np
 import pandas as pd
-import networkx as nx
-import os
+import networkx as nx  # Create network graph
+import os  # Read file from computer
+import matplotlib.pyplot as plt  # Dipslay graph
+import matplotlib.lines as mlines
+
 
 #########################################
 ### GET FULL PATH FOR IMDB .JSON FILE ###
@@ -42,6 +45,7 @@ for _, row in df.iterrows():
 # Ensure the graph has nodes and edges
 print(f"Graph has {g.number_of_nodes()} nodes and {g.number_of_edges()} edges.")
 
+
 #########################################
 ########## 1. DEGREE CENTRALITY #########
 ############ List Top 10 ################
@@ -65,6 +69,65 @@ print("###########################################################")
 print("###########################################################")
 
 #########################################
+########## 1. DEGREE CENTRALITY #########
+########## DISPLAY NETWORK GRAPH ########
+#########################################
+
+# Get the top 10 nodes by degree centrality
+top_10_nodes = sorted(degree_centrality, key=degree_centrality.get, reverse=True)[:10]
+
+# Set node sizes based on centrality
+node_sizes = [200 * degree_centrality[node] for node in g.nodes()]
+
+# Node colors (crimson for top 10, light blue for others)
+node_colors = ['crimson' if node in top_10_nodes else 'skyblue' for node in g.nodes()]
+
+# Node edge colors (black outline for top 10, none for others)
+node_edgecolors = ['black' if node in top_10_nodes else 'none' for node in g.nodes()]
+
+# Position the nodes using spring layout
+pos = nx.spring_layout(g, seed=42, k=6)
+
+# Set label positions slightly above nodes to avoid overlap
+label_pos = {node: (coords[0], coords[1] + 0.04) for node, coords in pos.items()}
+
+# Create labels for top 10 and other nodes
+top_10_labels = {node: node for node in top_10_nodes}
+other_labels = {node: node for node in g.nodes() if node not in top_10_nodes}
+
+# Draw the base graph with nodes and edges first
+plt.figure(figsize=(15, 10))
+nx.draw(g, pos, with_labels=False, node_size=node_sizes, node_color=node_colors, edge_color='gray', alpha=0.7, edgecolors=node_edgecolors)
+
+# Draw the other labels (non-top 10) first
+nx.draw_networkx_labels(
+    g, label_pos, labels=other_labels, font_size=8, font_weight='bold', font_color='black'
+)
+
+# Draw the top 10 labels with the translucent white box (draws them on top of the other labels)
+nx.draw_networkx_labels(
+    g, label_pos, labels=top_10_labels, font_size=8, font_weight='bold', font_color='black',
+    bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.2', alpha=0.8)
+)
+
+# Create the legend for the top 10 nodes
+legend_labels = {node: f"{node}: {degree_centrality[node]:.3f}" for node in top_10_nodes}
+handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='crimson', markersize=8) for _ in top_10_nodes]
+legend_text = [legend_labels[node] for node in top_10_nodes]
+legend = plt.legend(handles=handles, labels=legend_text, title="Top 10 by Degree Centrality", loc="upper right", fontsize=8, title_fontsize=10)
+
+# Make the legend title bold
+legend.get_title().set_fontweight('bold')
+
+# Add the title
+plt.title("Harry Potter Character Network: Top 10 by Degree Centrality", fontsize=14)
+
+# Save and display the plot
+plt.savefig("harrypotter_top10_degree_centr.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+
+#########################################
 ##### 2. EIGENVECTOR CENTRALITY #########
 ############ List Top 10 ################
 #########################################
@@ -81,11 +144,71 @@ for i, u in enumerate(sorted(eigenvector_centrality, key=eigenvector_centrality.
 
 # Create Eigenvector Centrality DataFrame
 df_eigenvector = pd.DataFrame(top_k_list, columns=["Rank", "Character Name", "Eigenvector Centrality Score"])
+
 print(f"EIGENVECTOR CENTRALITY OF TOP {top_k} CHARACTERS:")
 print(df_eigenvector)
 
 print("###########################################################")
 print("###########################################################")
+
+
+#########################################
+##### 2. EIGENVECTOR CENTRALITY #########
+########## DISPLAY NETWORK GRAPH ########
+#########################################
+
+# Get the top 10 nodes by Eigenvector centrality
+top_10_nodes = sorted(eigenvector_centrality, key=eigenvector_centrality.get, reverse=True)[:10]
+
+# Set node sizes based on centrality
+node_sizes = [200 * eigenvector_centrality[node] for node in g.nodes()]
+
+# Node colors (crimson for top 10, light blue for others)
+node_colors = ['crimson' if node in top_10_nodes else 'skyblue' for node in g.nodes()]
+
+# Node edge colors (black outline for top 10, none for others)
+node_edgecolors = ['black' if node in top_10_nodes else 'none' for node in g.nodes()]
+
+# Position the nodes using spring layout
+pos = nx.spring_layout(g, seed=42, k=6)
+
+# Set label positions slightly above nodes to avoid overlap
+label_pos = {node: (coords[0], coords[1] + 0.04) for node, coords in pos.items()}
+
+# Create labels for top 10 and other nodes
+top_10_labels = {node: node for node in top_10_nodes}
+other_labels = {node: node for node in g.nodes() if node not in top_10_nodes}
+
+# Draw the base graph with nodes and edges first
+plt.figure(figsize=(15, 10))
+nx.draw(g, pos, with_labels=False, node_size=node_sizes, node_color=node_colors, edge_color='gray', alpha=0.7, edgecolors=node_edgecolors)
+
+# Draw the other labels (non-top 10) first
+nx.draw_networkx_labels(
+    g, label_pos, labels=other_labels, font_size=8, font_weight='bold', font_color='black'
+)
+
+# Draw the top 10 labels with the translucent white box (draws them on top of the other labels)
+nx.draw_networkx_labels(
+    g, label_pos, labels=top_10_labels, font_size=8, font_weight='bold', font_color='black',
+    bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.2', alpha=0.8)
+)
+
+# Create the legend for the top 10 nodes
+legend_labels = {node: f"{node}: {eigenvector_centrality[node]:.3f}" for node in top_10_nodes}
+handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='crimson', markersize=8) for _ in top_10_nodes]
+legend_text = [legend_labels[node] for node in top_10_nodes]
+legend = plt.legend(handles=handles, labels=legend_text, title="Top 10 by Eigenvector Centrality", loc="upper right", fontsize=8, title_fontsize=10)
+
+# Make the legend title bold
+legend.get_title().set_fontweight('bold')
+
+# Add the title
+plt.title("Harry Potter Character Network: Top 10 by Eigenvector Centrality", fontsize=14)
+
+# Save and display the plot
+plt.savefig("harrypotter_top10_eigenvector_centr.png", dpi=300, bbox_inches='tight')
+plt.show()
 
 #########################################
 ##### 3. CLOSENESS CENTRALITY #########
@@ -110,6 +233,63 @@ print(df_closeness)
 print("###########################################################")
 print("###########################################################")
 
+#########################################
+##### 3. CLOSENESS CENTRALITY #########
+########## DISPLAY NETWORK GRAPH ########
+#########################################
+
+# Get the top 10 nodes by closeness centrality
+top_10_nodes = sorted(closeness_centrality, key=closeness_centrality.get, reverse=True)[:10]
+
+# Set node sizes based on centrality
+node_sizes = [100 * closeness_centrality[node] for node in g.nodes()]
+
+# Node colors (crimson for top 10, light blue for others)
+node_colors = ['crimson' if node in top_10_nodes else 'skyblue' for node in g.nodes()]
+
+# Node edge colors (black outline for top 10, none for others)
+node_edgecolors = ['black' if node in top_10_nodes else 'none' for node in g.nodes()]
+
+# Position the nodes using spring layout
+pos = nx.spring_layout(g, seed=42, k=6)
+
+# Set label positions slightly above nodes to avoid overlap
+label_pos = {node: (coords[0], coords[1] + 0.04) for node, coords in pos.items()}
+
+# Create labels for top 10 and other nodes
+top_10_labels = {node: node for node in top_10_nodes}
+other_labels = {node: node for node in g.nodes() if node not in top_10_nodes}
+
+# Draw the base graph with nodes and edges first
+plt.figure(figsize=(15, 10))
+nx.draw(g, pos, with_labels=False, node_size=node_sizes, node_color=node_colors, edge_color='gray', alpha=0.7, edgecolors=node_edgecolors)
+
+# Draw the other labels (non-top 10) first
+nx.draw_networkx_labels(
+    g, label_pos, labels=other_labels, font_size=8, font_weight='bold', font_color='black'
+)
+
+# Draw the top 10 labels with the translucent white box (draws them on top of the other labels)
+nx.draw_networkx_labels(
+    g, label_pos, labels=top_10_labels, font_size=8, font_weight='bold', font_color='black',
+    bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.2', alpha=0.8)
+)
+
+# Create the legend for the top 10 nodes
+legend_labels = {node: f"{node}: {closeness_centrality[node]:.3f}" for node in top_10_nodes}
+handles = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='crimson', markersize=8) for _ in top_10_nodes]
+legend_text = [legend_labels[node] for node in top_10_nodes]
+legend = plt.legend(handles=handles, labels=legend_text, title="Top 10 by Closeness Centrality", loc="upper right", fontsize=8, title_fontsize=10)
+
+# Make the legend title bold
+legend.get_title().set_fontweight('bold')
+
+# Add the title
+plt.title("Harry Potter Character Network: Top 10 by Closeness Centrality", fontsize=14)
+
+# Save and display the plot
+plt.savefig("harrypotter_top10_closeness_centr.png", dpi=300, bbox_inches='tight')
+plt.show()
 
 ########################
 ##### GRAPHING #########
